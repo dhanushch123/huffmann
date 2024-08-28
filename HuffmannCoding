@@ -1,0 +1,115 @@
+package tries;
+
+import java.util.HashMap;
+import java.util.PriorityQueue;
+
+class HuffmannTreeNode {
+    char data;
+    int frequency;
+    HuffmannTreeNode left, right;
+
+    public HuffmannTreeNode(char data, int frequency) {
+        this.data = data;
+        this.frequency = frequency;
+        this.left = null;
+        this.right = null;
+    }
+}
+
+public class HuffmannCoding {
+
+    // Step 1: Calculate frequencies of input string and return the hashmap
+    public HashMap<Character, Integer> calculateFrequency(String input) {
+        HashMap<Character, Integer> frequencyMap = new HashMap<>();
+        for (char c : input.toCharArray()) {
+            frequencyMap.put(c, frequencyMap.getOrDefault(c, 0) + 1);
+        }
+        return frequencyMap;
+    }
+
+    // Step 2: Build Huffman Tree
+    public HuffmannTreeNode buildTree(HashMap<Character, Integer> frequencyMap) {
+        PriorityQueue<HuffmannTreeNode> priorityQueue = new PriorityQueue<>((a, b) -> a.frequency - b.frequency);
+
+        // Add all entries of the hashmap into the PriorityQueue
+        for (HashMap.Entry<Character, Integer> entry : frequencyMap.entrySet()) {
+            priorityQueue.add(new HuffmannTreeNode(entry.getKey(), entry.getValue()));
+        }
+
+        while (priorityQueue.size() > 1) {
+            HuffmannTreeNode left = priorityQueue.poll();
+            HuffmannTreeNode right = priorityQueue.poll();
+            HuffmannTreeNode newNode = new HuffmannTreeNode('\0', left.frequency + right.frequency);
+            newNode.left = left;
+            newNode.right = right;
+            priorityQueue.add(newNode);
+        }
+
+        return priorityQueue.poll();
+    }
+
+    // Step 3: Generate Huffman codes by traversing the tree
+    public void generateCodes(HuffmannTreeNode root, String code, HashMap<Character, String> huffmanCodes) {
+        if (root == null) {
+            return;
+        }
+
+        // If the current node is a leaf node, add its character and code to the hashmap
+        if (root.left == null && root.right == null) {
+            huffmanCodes.put(root.data, code);
+        }
+
+        generateCodes(root.left, code + "0", huffmanCodes);
+        generateCodes(root.right, code + "1", huffmanCodes);
+    }
+
+    // Step 4: Encode the input string using Huffman codes
+    public String encode(String text, HashMap<Character, String> huffmanCodes) {
+        StringBuilder encodedString = new StringBuilder();
+        for (char c : text.toCharArray()) {
+            encodedString.append(huffmanCodes.get(c));
+        }
+        return encodedString.toString();
+    }
+
+    // Step 5: Decode the encoded string using the Huffman Tree
+    public String decode(HuffmannTreeNode root, String encoded) {
+        StringBuilder decodedString = new StringBuilder();
+        HuffmannTreeNode currentNode = root;
+
+        for (int i = 0; i < encoded.length(); i++) {
+            currentNode = encoded.charAt(i) == '0' ? currentNode.left : currentNode.right;
+
+            // If this node is a leaf node, it contains the decoded character
+            if (currentNode.left == null && currentNode.right == null) {
+                decodedString.append(currentNode.data);
+                currentNode = root; // Reset to the root for the next character
+            }
+        }
+
+        return decodedString.toString();
+    }
+
+    public static void main(String[] args) {
+        HuffmannCoding huffman = new HuffmannCoding();
+        String text = "example text for huffman coding";
+
+        // Step 1: Calculate frequency of each character in the string
+        HashMap<Character, Integer> frequency = huffman.calculateFrequency(text);
+
+        // Step 2: Build the Huffman Tree
+        HuffmannTreeNode finalHuffmanRoot = huffman.buildTree(frequency);
+
+        // Step 3: Generate Huffman codes from the Huffman Tree
+        HashMap<Character, String> huffmanCodes = new HashMap<>();
+        huffman.generateCodes(finalHuffmanRoot, "", huffmanCodes);
+
+        // Step 4: Encode the input string
+        String encodedString = huffman.encode(text, huffmanCodes);
+        System.out.println("Encoded String: " + encodedString);
+
+        // Step 5: Decode the encoded string
+        String decodedString = huffman.decode(finalHuffmanRoot, encodedString);
+        System.out.println("Decoded String: " + decodedString);
+    }
+}
