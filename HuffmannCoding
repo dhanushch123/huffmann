@@ -89,6 +89,16 @@ public class HuffmannCoding {
 
         return decodedString.toString();
     }
+    
+    public String Binary(String s)
+    {
+    	String binary = "";
+    	for( char c : s.toCharArray())
+    	{
+    		binary+= Integer.toBinaryString(c);
+    	}
+    	return binary;
+    }
 
     public static void main(String[] args) {
         HuffmannCoding huffman = new HuffmannCoding();
@@ -96,6 +106,7 @@ public class HuffmannCoding {
 
         // Step 1: Calculate frequency of each character in the string
         HashMap<Character, Integer> frequency = huffman.calculateFrequency(text);
+        String Binformat = huffman.Binary(text);
 
         // Step 2: Build the Huffman Tree
         HuffmannTreeNode finalHuffmanRoot = huffman.buildTree(frequency);
@@ -103,10 +114,15 @@ public class HuffmannCoding {
         // Step 3: Generate Huffman codes from the Huffman Tree
         HashMap<Character, String> huffmanCodes = new HashMap<>();
         huffman.generateCodes(finalHuffmanRoot, "", huffmanCodes);
+        
+        
 
         // Step 4: Encode the input string
         String encodedString = huffman.encode(text, huffmanCodes);
+        System.out.println("Initial Encoded String : " + Binformat);
+        System.out.println("Initial Size : " + Math.ceil(Binformat.length()/8)+" Bytes");
         System.out.println("Encoded String: " + encodedString);
+        System.out.println("Size After Compression : " + Math.ceil(encodedString.length()/8)+" Bytes");
 
         // Step 5: Decode the encoded string
         String decodedString = huffman.decode(finalHuffmanRoot, encodedString);
